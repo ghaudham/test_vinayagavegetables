@@ -1,0 +1,256 @@
+Node Js First App(Hello World)
+
+First app for refer this below link:
+           https://blog.devgenius.io/how-to-build-your-first-nodejs-project-with-express-js-21d5ebb545
+
+node js router structure link:
+          https://lo-victoria.com/build-a-rest-api-with-nodejs-routes-and-controllers 
+
+cors:
+        https://www.geeksforgeeks.org/use-of-cors-in-node-js/
+
+body-parser:
+
+       https://www.geeksforgeeks.org/body-parser-middleware-in-node-js/#:~:text=Body%2Dparser%20is%20the%20Node,middleware%20before%20you%20handle%20it.
+
+nodemon:
+      https://www.geeksforgeeks.org/node-js-automatic-restart-node-js-server-with-nodemon/
+
+
+All Steps:
+
+Step 1 : Install the Node Js
+Step 2 : Create package.json File
+Step 3 : Install Package
+Step 4 : Create server.js File
+Step 5 : Create index.ejs File
+Step 6 : Run Application in Browser
+
+Step-2: 
+       *Create Package.json File
+                                                       npm init
+  
+      *package.json the file looks like
+   
+                                     {
+                                                  "name": "firstnodejsapp",
+                                                  "version": "1.0.0",
+                                                  "description": "how to create hello world web application in nodejs",
+                                                   "main": "index.js",
+                                                   "scripts": {
+                                                     "test": "echo \"Error: no test specified\" && exit 1",
+                                                            },
+                                                        "keywords": [
+                                                          ],
+                                                       "author": "Harsukh Makwana",
+                                                         "license": "ISC",
+                                                       }
+
+
+Npm Run Start 
+
+"scripts"{
+   "start":"node index.js"    //Name of the file
+}
+
+
+Step-3:
+       *npm i express
+       *npm i nodemon
+
+const express = require(“express”);
+
+var app = express();
+
+
+app.get("/", function(request,response){
+     response.send("Hello world")
+})
+
+app.listen(5000, function () {
+
+console.log(“Started application on port %d”, 5000);
+
+});
+
+Step-4(Database Connection) 
+
+1.create connection.js file,
+
+
+const {Client} =require('pg');
+
+const client=new Client({
+    host: "172.16.200.197",
+    user: "postgres",
+    port: 5432,
+    password: "P@ssw0rd",
+    database: "postgres"
+}
+)
+module.exports = client
+
+2.Exported client import in index.js file
+
+const client = require('./connection.js')
+
+Below Over All Node.js Index.js File
+
+const client = require('./connection.js')
+const express = require('express');
+const app = express();
+var cors = require('cors')
+
+
+app.use(cors());
+
+app.listen(3001,()=>{
+    console.log("The server is running at port no 3001");
+})
+
+client.connect();
+
+app.get('/',(req,res)=>{
+  res.send("Runnning successfully");
+    
+})
+
+//GET
+
+app.get('/get',(req,res)=>{
+    try {
+        client.query("SELECT id,firstname,lastname,to_char(dob,'dd/mm/yyyy') as dob,clg_detail,course,place,phone FROM student ORDER BY id ASC",(err,result)=>{            
+        if(!err){
+            res.send(result.rows);
+        }
+    });
+    } catch (error) {
+    }
+    client.end;
+})
+
+//bodyParser
+
+const bodyParser = require("body-parser");
+app.use(bodyParser.json());
+
+//INSERT
+
+app.post('/add',(req,res)=>{
+    let insert = `insert into student (firstname,lastname,dob,clg_detail,course,place,phone) values 
+    ('${req.body.fname}' , '${req.body.lname}', '${req.body.dob}', '${req.body.college}', '${req.body.course}', '${req.body.place}', ${req.body.phone})`
+    client.query(insert,(err,result)=>{
+        if(!err){
+            res.send("Insertion success");
+        }else{
+            console.log(err.message);
+        }
+    })
+})
+
+//UPDATE
+
+app.patch('/list/update/:id',(req,res)=>{
+    let update = `update student set 
+                firstname='${req.body.firstname}',
+                lastname='${req.body.lastname}', 
+                dob='${req.body.dob}', 
+                clg_detail='${req.body.clg_detail}', 
+                course='${req.body.course}', 
+                place='${req.body.place}', 
+                phone=${req.body.phone} 
+                where 
+                id= ${req.body.id}`;
+    client.query(update,(err,result)=>{
+        if(!err){
+            res.send("Updation successfull")
+        }else{
+            console.log(err.message);
+        }
+    })
+})
+
+//DELETE
+
+app.delete('/delete/:id',(req,res)=>{
+    let del=`delete from student where id=${req.params.id}`;
+    client.query(del,(err,result)=>{
+        if(!err){
+            res.send("Deletion successfull")
+        }else{
+            console.log(err.message);
+        }
+    })
+})
+
+Below Codes For NewWms(Insert,Update,Delete,Get)
+
+Delete
+
+export const deletenewTool = (req, res) => { debugger
+    let getData = req.body
+
+    console.log(getData, 'getDataaaaaaa')
+
+
+    let sql = `DELETE FROM pp_mst_tool WHERE toolid=${getData.toolId};`
+    query(sql).then((data) => {
+        res.status(200).json({ data: data, message: "Tool deleted sucessfully", status: true });
+    }).catch((error) => {
+        res.status(400).send({ message: error, status: false, data: [] });
+    });
+
+}
+
+
+Update
+export const updatenewTool = (req, res) => {
+    let getData = req.body
+
+    console.log(getData, 'getDataaaaaaaup')
+
+
+    let sql = `UPDATE pp_mst_tool SET   
+    toolname='${getData.name}', tooldescription='${getData.description}', toolmodeid='${getData.toolmode}', toolstatus=${getData.status}, tooltypeid = ${getData.tooltype},
+    payload='${JSON.stringify(getData.payload)}',istoolverified=${true}, isasync =${getData.toolsexecutiontype == '0' ? false : true}, tooloutputid =${getData.toolsoutput}
+    WHERE toolid=${getData.toolId};`
+
+    console.log(sql, 'sqltool')
+
+
+    query(sql).then((data) => {
+        res.status(200).json({ data: data, message: "Tool updated sucessfully", status: true });
+    }).catch((error) => {
+        res.status(400).send({ message: error, status: false, data: [] });
+    });
+
+}
+
+
+Get
+
+export const getToolidOptions = (req, res) => {
+    const sql = `select toolid as id,toolname as text from pp_mst_tool where toolstatus=true`;
+    query(sql).then((data) => {
+        res.status(200).json({ data: data, status: true });
+    }).catch((error) => {
+        res.status(400).send({ message: error, status: false, data: [] });
+    });
+}
+
+
+Insert
+
+export const journalFile = (req, res) => {
+    const { journalid, path, repofileuuid } = req.body;
+    let sql = `INSERT INTO public.pp_mst_journal_instructions(journalid, repofilepath, repofileuuid)
+       VALUES ( ${journalid}, '${path}', '${repofileuuid}')`;
+    console.log(sql, "insertingfile")
+    query(sql).then((response) => {
+        res.status(200).json({
+            data: response
+        })
+    }).catch((error) => {
+        res.status(400).send({ message: error });
+    });
+}
